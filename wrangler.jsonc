@@ -1,0 +1,28 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "timetable-room-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "ai": {
+    "binding": "AI"
+  },
+  "assets": {
+    "directory": "./frontend/dist",
+    "binding": "ASSETS"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "timetable-room-db",
+      "database_id": "12053a06-4551-47e4-a806-c825c36317a7",
+      "migrations_dir": "migrations"
+    },
+    {
+      "binding": "timetable_room_db",
+      "database_name": "timetable-room-db",
+      "database_id": "12053a06-4551-47e4-a806-c825c36317a7",
+      "migrations_dir": "migrations"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "name": "timetable-room-api",
+  "version": "1.0.0",
+  "description": "Identity & Academic Core - Timetable & Room (Team 4) Cloudflare Workers + D1 API",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "npx wrangler dev",
+    "deploy": "npx wrangler deploy",
+    "db:migrate:local": "npx wrangler d1 execute timetable-room-db --local --file=./migrations/0001_initial_schema.sql",
+    "db:seed:local": "npx wrangler d1 execute timetable-room-db --local --file=./migrations/0002_seed_data.sql",
+    "db:migrate:remote": "npx wrangler d1 execute timetable-room-db --remote --file=./migrations/0001_initial_schema.sql",
+    "db:seed:remote": "npx wrangler d1 execute timetable-room-db --remote --file=./migrations/0002_seed_data.sql",
+    "frontend:dev": "node \"frontend/node_modules/vite/bin/vite.js\" frontend",
+    "frontend:build": "node \"frontend/node_modules/typescript/bin/tsc\" -p frontend && node \"frontend/node_modules/vite/bin/vite.js\" build frontend"
+  },
+  "dependencies": {
+    "hono": "^4.6.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261102.1",
+    "marked": "^18.0.13",
+    "typescript": "^5.6.0",
+    "wrangler": "^4.156.1"
+  }
+}

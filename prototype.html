@@ -1,0 +1,528 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Timetable &amp; Room</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+
+/* Layout: sticky top bar, four role-aware views, modal for meeting edits. */
+:root{--bg:#f5f6fa;--card:#fff;--ink:#1b1f2e;--muted:#6b7285;--line:#e6e8ef;--line2:#f0f1f6;--brand:#4f46e5;--brand-text:#4f46e5;--brand-soft:#eef0ff;--ok:#0f9d6b;--ok-soft:#e5f6ee;--ok-tx:#0a6b49;--warn:#b7791f;--warn-soft:#fdf3dc;--warn-tx:#7a5210;--bad:#d1344a;--bad-soft:#fde8ec;--bad-tx:#8e1f31;--header-bg:rgba(255,255,255,.92);--today-bg:#fafaff;--switch-off:#c7cbd8;--toast-bg:#1b1f2e;--bgl:94%;--txl:22%;--bdl:48%;--shadow:0 1px 2px rgba(20,24,40,.05),0 6px 24px rgba(20,24,40,.06);--radius:14px;--ui:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans Thai",Roboto,sans-serif;--mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0e1120;--card:#171b2f;--ink:#e7e9f4;--muted:#9aa2bb;--line:#2a3050;--line2:#1f2440;--brand:#6a62f0;--brand-text:#aaa5ff;--brand-soft:#262a55;--ok:#3ecf9a;--ok-soft:#10352a;--ok-tx:#8ee6c4;--warn:#e5b04a;--warn-soft:#382c10;--warn-tx:#f0cf8a;--bad:#ff6b82;--bad-soft:#3a1721;--bad-tx:#ffb3c0;--header-bg:rgba(14,17,32,.92);--today-bg:#141833;--switch-off:#3a4160;--toast-bg:#2b3152;--bgl:20%;--txl:86%;--bdl:58%;--shadow:0 1px 2px rgba(0,0,0,.3),0 6px 24px rgba(0,0,0,.3);color-scheme:dark;}}
+:root[data-theme="dark"]{--bg:#0e1120;--card:#171b2f;--ink:#e7e9f4;--muted:#9aa2bb;--line:#2a3050;--line2:#1f2440;--brand:#6a62f0;--brand-text:#aaa5ff;--brand-soft:#262a55;--ok:#3ecf9a;--ok-soft:#10352a;--ok-tx:#8ee6c4;--warn:#e5b04a;--warn-soft:#382c10;--warn-tx:#f0cf8a;--bad:#ff6b82;--bad-soft:#3a1721;--bad-tx:#ffb3c0;--header-bg:rgba(14,17,32,.92);--today-bg:#141833;--switch-off:#3a4160;--toast-bg:#2b3152;--bgl:20%;--txl:86%;--bdl:58%;--shadow:0 1px 2px rgba(0,0,0,.3),0 6px 24px rgba(0,0,0,.3);color-scheme:dark;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 var(--ui)}
+button,select,input{font:inherit;color:inherit}
+header{flex:none;width:248px;position:sticky;top:env(safe-area-inset-top,0px);height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overflow-y:auto;z-index:20;background:var(--card);border-right:1px solid var(--line)}
+.bar{min-height:100%;padding:18px 14px 18px max(14px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:22px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700}
+.logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#4f46e5,#7c3aed);display:grid;place-items:center;color:#fff;font-size:17px}
+.brand small{display:block;font-weight:500;color:var(--muted);font-size:11.5px;margin-top:-2px}
+nav{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0}
+nav button{border:0;background:none;padding:10px 12px;border-radius:9px;color:var(--muted);font-weight:600;cursor:pointer;white-space:nowrap;width:100%;display:flex;justify-content:space-between;align-items:center;text-align:left}
+nav button:hover{background:var(--line2)}
+nav button.on{background:var(--brand-soft);color:var(--brand-text)}
+.right{display:flex;flex-direction:column;align-items:stretch;gap:14px;padding-top:16px;border-top:1px solid var(--line)}
+.seg{display:inline-flex;background:var(--line2);padding:3px;border-radius:10px}
+.seg button{border:0;background:none;padding:6px 12px;border-radius:8px;font-weight:600;color:var(--muted);cursor:pointer}
+.seg button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.user{display:flex;align-items:center;gap:9px}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--brand);color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px}
+.user b{display:block;line-height:1.1}.user span{font-size:11.5px;color:var(--muted)}
+main{max-width:1280px;margin:0 auto;padding-block:22px 24px;padding-left:24px;padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{font-size:22px;margin:0 0 4px}h2{font-size:16px;margin:0}h3{font-size:14px;margin:0}
+.sub{color:var(--muted);margin:0 0 18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.pad{padding:16px 18px}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.spread{justify-content:space-between}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:18px;align-items:start}
+.grid-rooms{display:grid;grid-template-columns:300px minmax(0,1fr);gap:18px;align-items:start}
+@media(max-width:980px){.grid2,.grid-rooms,.grid-ev{grid-template-columns:minmax(0,1fr)}}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:99px;font-size:12px;font-weight:600;background:var(--line2);color:var(--muted)}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}.pill.warn{background:var(--warn-soft);color:var(--warn)}.pill.bad{background:var(--bad-soft);color:var(--bad)}.pill.brand{background:var(--brand-soft);color:var(--brand-text)}
+.btn{border:1px solid var(--line);background:var(--card);padding:8px 14px;border-radius:10px;font-weight:600;cursor:pointer}
+.btn:hover{background:var(--line2)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}.btn.primary:hover{filter:brightness(1.08)}
+.btn.danger{color:var(--bad)}.btn.sm{padding:4px 10px;font-size:12.5px;border-radius:8px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.field{display:flex;flex-direction:column;gap:5px;font-size:12.5px;font-weight:600;color:var(--muted)}
+.field select,.field input{padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--card);font-weight:500;color:var(--ink)}
+.field select:focus,.field input:focus{outline:2px solid var(--brand-soft);border-color:var(--brand)}
+.alert{display:flex;gap:12px;padding:12px 14px;border-radius:12px;margin-bottom:16px;align-items:flex-start}
+.alert.bad{background:var(--bad-soft);color:var(--bad-tx)}.alert.warn{background:var(--warn-soft);color:var(--warn-tx)}.alert.ok{background:var(--ok-soft);color:var(--ok-tx)}
+.alert ul{margin:4px 0 0;padding-left:18px}
+.alert .ico{flex:none;width:22px;height:22px;border:2px solid currentColor;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;line-height:1}
+/* timetable grid */
+.ttwrap{overflow-x:auto}
+.tt{min-width:680px}
+.tt-head,.tt-body{display:grid;grid-template-columns:54px repeat(5,1fr)}
+.tt-head div{padding:10px 8px;font-weight:700;text-align:center;border-bottom:1px solid var(--line);color:var(--muted);font-size:12.5px}
+.tt-head div.today{color:var(--brand-text)}
+.tt-hours{position:relative}
+.tt-hours span{position:absolute;right:8px;font-size:11px;color:var(--muted);transform:translateY(-7px)}
+.tt-col{position:relative;border-left:1px solid var(--line2);background-image:linear-gradient(var(--line2) 1px,transparent 1px);background-size:100% var(--hh)}
+.tt-col.today{background-color:var(--today-bg)}
+.blk{position:absolute;border-radius:9px;padding:6px 8px;border-left:4px solid;overflow:hidden;font-size:12px;line-height:1.3;cursor:default;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.blk b{display:block;font-size:12.5px}
+.blk.clash{outline:2px solid var(--bad);background-image:repeating-linear-gradient(135deg,rgba(209,52,74,.12) 0 6px,transparent 6px 12px)!important}
+.blk.over{outline:2px dashed var(--warn)}
+.blk[data-edit]{cursor:pointer}
+/* lists */
+.roomcard{padding:12px 14px;border-bottom:1px solid var(--line2);cursor:pointer;display:flex;justify-content:space-between;gap:8px}
+.roomcard:last-child{border:0}.roomcard:hover{background:var(--line2)}.roomcard.on{background:var(--brand-soft)}
+.roomcard small{color:var(--muted)}
+.cap{height:5px;background:var(--line);border-radius:9px;margin-top:6px;overflow:hidden;width:120px}.cap i{display:block;height:100%;background:var(--brand)}
+table{width:100%;border-collapse:collapse}
+th{font-size:12px;text-align:left;color:var(--muted);padding:10px 14px;border-bottom:1px solid var(--line);font-weight:600;white-space:nowrap}
+td{padding:11px 14px;border-bottom:1px solid var(--line2);vertical-align:middle}
+tr:last-child td{border:0}
+.tablewrap{overflow-x:auto}
+.dot{width:10px;height:10px;border-radius:3px;display:inline-block;margin-right:7px}
+.stat{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+.stat .card{padding:14px 18px;min-width:150px;flex:1}
+.stat b{font-size:24px;display:block}.stat span{color:var(--muted);font-size:12.5px}
+/* modal */
+.scrim{position:fixed;inset:0;background:rgba(15,18,32,.45);display:grid;place-items:center;z-index:50;padding:16px}
+.modal{background:var(--card);border-radius:18px;width:min(720px,100%);max-height:94vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal header{position:static;padding:16px 22px;display:flex;justify-content:space-between;align-items:center;background:var(--card)}
+.modal .body{padding:18px 22px;display:grid;gap:14px}
+.modal footer{padding:14px 22px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.form2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.form3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+@media(max-width:560px){.form2,.form3{grid-template-columns:1fr}}
+.sugg{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;margin-top:8px}
+.sugg:hover{border-color:var(--brand);background:var(--brand-soft)}
+.toasts{position:fixed;bottom:calc(18px + env(safe-area-inset-bottom,0px));right:calc(18px + env(safe-area-inset-right,0px));display:grid;gap:8px;z-index:80}
+.toast{background:var(--toast-bg);color:#fff;padding:11px 16px;border-radius:11px;box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:360px;animation:in .2s}
+.toast.bad{background:#8e1f31}.toast.ok{background:#0a6b49}
+@keyframes in{from{transform:translateY(8px);opacity:0}}
+pre{margin:0;background:#12162a;color:#cfd6ff;padding:10px 12px;border-radius:10px;font:12px/1.5 var(--mono);overflow:auto}
+.log{max-height:520px;overflow:auto;display:grid;gap:10px}
+.logi{border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.logi .h{display:flex;gap:8px;align-items:center;margin-bottom:6px;flex-wrap:wrap}
+.logi time{margin-left:auto;color:var(--muted);font-size:11.5px}
+.empty{text-align:center;color:var(--muted);padding:34px 10px}
+.lock{max-width:460px;margin:60px auto;text-align:center;padding:36px}
+.lock .big{font-size:44px;font-weight:700;letter-spacing:-.02em;color:var(--muted)}
+.sw{position:relative;width:38px;height:22px;background:var(--switch-off);border-radius:99px;border:0;cursor:pointer;flex:none}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:.15s}
+.sw.on{background:var(--ok)}.sw.on::after{left:19px}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--brand);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:5px;vertical-align:-2px}
+
+.shell{display:flex;align-items:flex-start;min-height:100%}
+.content{flex:1;min-width:0}
+.right .seg{display:flex}.right .seg button{flex:1}
+.modal header{width:auto;height:auto;overflow:visible;border:0;border-bottom:1px solid var(--line)}
+@media(max-width:760px){
+ .shell{flex-direction:column;align-items:stretch}
+ header{width:auto;height:auto;border-right:0;border-bottom:1px solid var(--line);overflow:visible}
+ .bar{min-height:0;flex-direction:row;flex-wrap:wrap;align-items:center;gap:12px;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px))}
+ nav{flex-direction:row;flex:1 1 100%;order:3;overflow-x:auto}
+ nav button{width:auto;gap:8px}
+ .right{flex-direction:row;align-items:center;flex-wrap:wrap;border:0;padding:0;margin-left:auto}
+ .right .seg{display:inline-flex}.right .seg button{flex:none}
+ main,.foot{padding-left:max(16px,env(safe-area-inset-left,0px))}
+}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--header-bg)}
+.grid-ev{display:grid;grid-template-columns:380px minmax(0,1fr);gap:18px;align-items:start}
+.grid2>*,.grid-rooms>*,.grid-ev>*{min-width:0}
+.foot{max-width:1280px;margin:0 auto;padding-block:0 32px;padding-left:24px;padding-right:max(16px,env(safe-area-inset-right,0px));color:var(--muted);font-size:12.5px}
+:focus-visible{outline:2px solid var(--brand-text);outline-offset:2px}
+td,th,.stat b,.blk,.roomcard small,time{font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+<div class="shell"><header><div class="bar" id="topbar"></div></header>
+<div class="content">
+<main id="app"></main>
+<p class="foot">Prototype for review. All data is sample data and resets on reload. Use the Student / Staff switch at the top right to see both roles.</p>
+</div></div>
+<div id="modal"></div>
+<div class="toasts" id="toasts"></div>
+<script>
+/* ============ Mock data (stands in for Cloudflare D1) ============ */
+const DAYS=['Mon','Tue','Wed','Thu','Fri'];
+const H0=8,H1=18,HH=52;
+const t2m=s=>{const[a,b]=s.split(':');return +a*60+ +b};
+const m2t=m=>String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
+const overlap=(a,b)=>t2m(a.start)<t2m(b.end)&&t2m(b.start)<t2m(a.end);
+
+const rooms=[
+ {id:'rm_a101',name:'A101',capacity:40,building:'Building A'},
+ {id:'rm_a102',name:'A102',capacity:30,building:'Building A'},
+ {id:'rm_b201',name:'B201',capacity:60,building:'Building B'},
+ {id:'rm_b202',name:'B202',capacity:25,building:'Building B'},
+ {id:'rm_c301',name:'C301',capacity:50,building:'Building C'},
+ {id:'rm_lab1',name:'LAB-1',capacity:30,building:'Computer Center'},
+ {id:'rm_lab2',name:'LAB-2',capacity:20,building:'Computer Center'},
+ {id:'rm_hall',name:'Hall 1',capacity:120,building:'Building C'},
+];
+const courses=[
+ {id:'c1',code:'SWE204',name:'Software Engineering',credits:3,hue:245},
+ {id:'c2',code:'CPE201',name:'Data Structures',credits:3,hue:160},
+ {id:'c3',code:'MAT201',name:'Linear Algebra',credits:3,hue:28},
+ {id:'c4',code:'ENG102',name:'Academic English',credits:2,hue:330},
+ {id:'c5',code:'SWE210',name:'Database Systems',credits:3,hue:200},
+ {id:'c6',code:'PHY101',name:'Physics I',credits:3,hue:95},
+ {id:'c7',code:'SWE305',name:'Web Programming',credits:3,hue:285},
+ {id:'c8',code:'CPE310',name:'Operating Systems',credits:3,hue:5},
+];
+// base = students enrolled other than the tracked demo student
+const sections=[
+ {id:'sec_swe204_01',courseId:'c1',no:'01',capacity:55,base:41},
+ {id:'sec_cpe201_01',courseId:'c2',no:'01',capacity:40,base:37},
+ {id:'sec_mat201_01',courseId:'c3',no:'01',capacity:60,base:52},
+ {id:'sec_eng102_01',courseId:'c4',no:'01',capacity:30,base:24},
+ {id:'sec_swe210_01',courseId:'c5',no:'01',capacity:30,base:26},
+ {id:'sec_phy101_01',courseId:'c6',no:'01',capacity:120,base:96},
+ {id:'sec_swe305_01',courseId:'c7',no:'01',capacity:50,base:45},
+ {id:'sec_cpe310_01',courseId:'c8',no:'01',capacity:25,base:21},
+];
+const ME={id:'usr_std_001',name:'Napat Srisuk',role:'student'};
+const STAFF={id:'usr_stf_001',name:'Kanya Planner',role:'staff'};
+let enrollments=['sec_swe204_01','sec_cpe201_01','sec_mat201_01','sec_eng102_01','sec_swe210_01']
+  .map(s=>({student:ME.id,section:s,status:'enrolled'}));
+let meetings=[
+ {id:'mtg_01',sectionId:'sec_swe204_01',roomId:'rm_b201',day:'Mon',start:'09:00',end:'12:00'},
+ {id:'mtg_02',sectionId:'sec_cpe201_01',roomId:'rm_a101',day:'Mon',start:'13:00',end:'15:00'},
+ {id:'mtg_03',sectionId:'sec_cpe201_01',roomId:'rm_a101',day:'Wed',start:'13:00',end:'15:00'},
+ {id:'mtg_04',sectionId:'sec_mat201_01',roomId:'rm_b201',day:'Tue',start:'09:00',end:'11:00'},
+ {id:'mtg_05',sectionId:'sec_mat201_01',roomId:'rm_b201',day:'Thu',start:'09:00',end:'11:00'},
+ {id:'mtg_06',sectionId:'sec_eng102_01',roomId:'rm_a102',day:'Tue',start:'13:00',end:'15:00'},
+ {id:'mtg_07',sectionId:'sec_swe210_01',roomId:'rm_lab1',day:'Tue',start:'10:00',end:'12:00'},
+ {id:'mtg_08',sectionId:'sec_swe210_01',roomId:'rm_lab1',day:'Thu',start:'13:00',end:'15:00'},
+ {id:'mtg_09',sectionId:'sec_phy101_01',roomId:'rm_hall',day:'Wed',start:'09:00',end:'11:00'},
+ {id:'mtg_10',sectionId:'sec_swe305_01',roomId:'rm_c301',day:'Fri',start:'09:00',end:'12:00'},
+ {id:'mtg_11',sectionId:'sec_cpe310_01',roomId:'rm_b202',day:'Wed',start:'15:30',end:'17:30'},
+ {id:'mtg_12',sectionId:'sec_swe204_01',roomId:'rm_b201',day:'Thu',start:'15:00',end:'17:00'},
+];
+let nextId=13;
+
+/* ============ Helpers ============ */
+const sec=id=>sections.find(s=>s.id===id);
+const rm=id=>rooms.find(r=>r.id===id);
+const crs=id=>courses.find(c=>c.id===id);
+const secCourse=s=>crs(sec(s).courseId);
+const secLabel=id=>{const s=sec(id);return crs(s.courseId).code+'-'+s.no};
+const enrolled=id=>{const s=sec(id);return s.base+enrollments.filter(e=>e.section===id&&e.status==='enrolled').length};
+const color=c=>({bg:`hsl(${c.hue} 85% var(--bgl))`,bd:`hsl(${c.hue} 60% var(--bdl))`,tx:`hsl(${c.hue} 55% var(--txl))`});
+const $=s=>document.querySelector(s);
+const nowT=()=>new Date().toLocaleTimeString('en-GB');
+const todayIdx=(()=>{const d=new Date().getDay();return d>=1&&d<=5?d-1:-1})();
+const timeOpts=[];for(let m=H0*60;m<=H1*60;m+=30)timeOpts.push(m2t(m));
+
+/* ============ App state ============ */
+const S={role:'student',view:'timetable',selRoom:'rm_a101',fBuilding:'',fCap:0,fQ:'',
+  mQ:'',mDay:'',mRoom:'',aiUp:true,log:[],seen:new Set(),modal:null,sugg:null,suggLoading:false,suggMode:null,
+  enrDraft:{event_id:'evt_20260920_001',student:ME.id,section:'sec_swe305_01',action:'enrolled'}};
+
+/* ============ Domain logic (mirrors BR-01, BR-02, FR-07) ============ */
+function check(f,ignoreId){
+  const errors=[];let http=200;
+  if(!f.sectionId||!f.roomId||!f.day||!f.start||!f.end){return{ok:false,http:400,errors:['Missing required fields (section, room, day, start, end).']}}
+  if(t2m(f.end)<=t2m(f.start)){errors.push('Invalid time: end time must be after start time (CHECK start_time < end_time).');http=400}
+  const room=rm(f.roomId),n=enrolled(f.sectionId);
+  if(http===200){
+    meetings.filter(m=>m.id!==ignoreId&&m.roomId===f.roomId&&m.day===f.day&&overlap(m,f)).forEach(m=>
+      errors.push(`Time clash (BR-01): ${room.name} is already booked ${m.day} ${m.start}–${m.end} by ${secLabel(m.sectionId)}.`));
+    if(errors.length)http=409;
+  }
+  if(n>room.capacity){errors.push(`Over capacity (BR-02): ${secLabel(f.sectionId)} has ${n} enrolled students but ${room.name} seats ${room.capacity}.`);if(http===200)http=400}
+  return{ok:!errors.length,http,errors};
+}
+function suggest(f,ignoreId){
+  const dur=t2m(f.end)-t2m(f.start)>0?t2m(f.end)-t2m(f.start):120;
+  const n=enrolled(f.sectionId),out=[];
+  for(const day of DAYS)for(const r of rooms){
+    if(r.capacity<n)continue;
+    for(let s=H0*60;s+dur<=H1*60;s+=30){
+      const c={roomId:r.id,day,start:m2t(s),end:m2t(s+dur)};
+      if(meetings.some(m=>m.id!==ignoreId&&m.roomId===r.id&&m.day===day&&overlap(m,c)))continue;
+      if(meetings.some(m=>m.id!==ignoreId&&m.sectionId===f.sectionId&&m.day===day&&overlap(m,c)))continue;
+      const score=(r.id===f.roomId?0:30)+(day===f.day?0:20+Math.abs(DAYS.indexOf(day)-DAYS.indexOf(f.day))*4)+Math.abs(s-t2m(f.start||'09:00'))/10+(r.capacity-n)/8;
+      out.push({...c,score,why:[r.id===f.roomId?'same room':'room '+r.name,day===f.day?'same day':day,`${r.capacity-n} spare seats`].join(' · ')});
+    }
+  }
+  return out.sort((a,b)=>a.score-b.score).slice(0,5);
+}
+function logEvt(dir,name,payload,extra){S.log.unshift({dir,name,payload,extra,ts:nowT()})}
+function emitSchedule(action,m){
+  const p={event_id:'evt_'+Date.now(),event_name:'schedule.changed',action,meeting_id:m.id,section_id:m.sectionId,room_id:m.roomId,day:m.day,start_time:m.start,end_time:m.end,timestamp:new Date().toISOString()};
+  logEvt('OUT','schedule.changed',p,'→ Notification Hub, Data & Analytics (mock)');
+}
+function toast(msg,kind){
+  const el=document.createElement('div');el.className='toast '+(kind||'');el.textContent=msg;$('#toasts').appendChild(el);
+  setTimeout(()=>el.remove(),3800);
+}
+function studentMeetings(){
+  const mine=enrollments.filter(e=>e.student===ME.id&&e.status==='enrolled').map(e=>e.section);
+  return meetings.filter(m=>mine.includes(m.sectionId));
+}
+function studentClashes(){
+  const ms=studentMeetings(),out=[];
+  for(let i=0;i<ms.length;i++)for(let j=i+1;j<ms.length;j++)
+    if(ms[i].day===ms[j].day&&overlap(ms[i],ms[j]))out.push([ms[i],ms[j]]);
+  return out;
+}
+
+/* ============ Renderers ============ */
+function grid(blocks){
+  // lay out overlapping blocks side by side
+  blocks.forEach(b=>{
+    const g=blocks.filter(o=>o.day===b.day&&overlap(o,b));
+    b._n=g.length;b._i=g.indexOf(b);
+  });
+  let hours='';for(let h=H0;h<H1;h++)hours+=`<span style="top:${(h-H0)*HH}px">${String(h).padStart(2,'0')}:00</span>`;
+  const cols=DAYS.map((d,i)=>{
+    const bs=blocks.filter(b=>b.day===d).map(b=>{
+      const top=(t2m(b.start)-H0*60)/60*HH,h=(t2m(b.end)-t2m(b.start))/60*HH-2;
+      const w=100/b._n;
+      return `<div class="blk ${b.cls||''}" ${b.edit?`data-edit="${b.edit}"`:''} title="${b.title}" style="top:${top}px;height:${h}px;left:calc(${b._i*w}% + 3px);width:calc(${w}% - 6px);background:${b.c.bg};border-color:${b.c.bd};color:${b.c.tx}">
+        <b>${b.title}</b>${b.l1||''}<br>${b.l2||''}</div>`;
+    }).join('');
+    return `<div class="tt-col ${i===todayIdx?'today':''}" style="height:${(H1-H0)*HH}px">${bs}</div>`;
+  }).join('');
+  return `<div class="ttwrap"><div class="tt" style="--hh:${HH}px">
+    <div class="tt-head"><div></div>${DAYS.map((d,i)=>`<div class="${i===todayIdx?'today':''}">${d}</div>`).join('')}</div>
+    <div class="tt-body"><div class="tt-hours" style="height:${(H1-H0)*HH}px">${hours}</div>${cols}</div></div></div>`;
+}
+
+function renderTop(){
+  const staff=S.role==='staff',u=staff?STAFF:ME;
+  const tabs=[['timetable','My Timetable',!staff],['rooms','Room Schedule',true],['manage','Room Management',true],['events','Events & Integration',true]];
+  $('#topbar').innerHTML=`
+   <div class="brand"><div class="logo">▦</div><div>Timetable & Room<small>Identity & Academic Core · Team 4</small></div></div>
+   <nav>${tabs.filter(t=>t[2]).map(t=>`<button class="${S.view===t[0]?'on':''}" data-view="${t[0]}">${t[1]}${t[0]==='manage'&&!staff?' <span class="pill">staff</span>':''}</button>`).join('')}</nav>
+   <div class="right">
+     <div class="seg" title="Demo: switch the JWT role claim">
+       <button data-role="student" class="${!staff?'on':''}">Student</button><button data-role="staff" class="${staff?'on':''}">Staff</button></div>
+     <div class="user"><div class="avatar">${u.name[0]}</div><div><b>${u.name}</b><span>${staff?'room-planning permission':u.id}</span></div></div>
+   </div>`;
+}
+
+function viewTimetable(){
+  const clashes=studentClashes(),ms=studentMeetings();
+  const clashIds=new Set(clashes.flat().map(m=>m.id));
+  const blocks=ms.map(m=>{const c=secCourse(m.sectionId);return{day:m.day,start:m.start,end:m.end,title:c.code,l1:`${m.start}–${m.end}`,l2:rm(m.roomId).name,c:color(c),cls:clashIds.has(m.id)?'clash':''}});
+  const mine=enrollments.filter(e=>e.student===ME.id&&e.status==='enrolled');
+  const credits=mine.reduce((a,e)=>a+secCourse(e.section).credits,0);
+  return `<h1>My Timetable</h1><p class="sub">Generated automatically from your registered courses · read-only (BR-03) · Semester 1 / 2026</p>
+  <div class="stat"><div class="card"><b>${mine.length}</b><span>Registered courses</span></div><div class="card"><b>${credits}</b><span>Credits</span></div>
+   <div class="card"><b>${ms.length}</b><span>Weekly meetings</span></div><div class="card"><b style="color:${clashes.length?'var(--bad)':'var(--ok)'}">${clashes.length}</b><span>Schedule conflicts</span></div></div>
+  ${clashes.length?`<div class="alert bad"><div class="ico" aria-hidden="true">!</div><div><b>You have ${clashes.length} time conflict${clashes.length>1?'s':''} in your timetable</b>
+    <ul>${clashes.map(([a,b])=>`<li>${a.day} — ${secCourse(a.sectionId).code} (${a.start}–${a.end}) overlaps ${secCourse(b.sectionId).code} (${b.start}–${b.end})</li>`).join('')}</ul>
+    <div style="margin-top:6px;font-size:12.5px">Your timetable cannot be edited here. Please adjust your registration with the Enrollment office.</div></div></div>`
+   :`<div class="alert ok"><div class="ico" aria-hidden="true">✓</div><div><b>No conflicts.</b> Your timetable is clear.</div></div>`}
+  <div class="grid2">
+   <div class="card"><div class="pad row spread"><h2>Week view</h2><div class="legend"><span><i style="background:var(--bad-soft);outline:2px solid var(--bad)"></i>Conflict</span></div></div>${grid(blocks)}</div>
+   <div class="card"><div class="pad"><h2>Registered courses</h2></div>
+    ${mine.map(e=>{const c=secCourse(e.section),k=color(c);return `<div class="roomcard" style="cursor:default"><div><span class="dot" style="background:${k.bd}"></span><b>${c.code}</b> <small>sec ${sec(e.section).no}</small><br><small>${c.name}</small></div><span class="pill">${c.credits} cr</span></div>`}).join('')||'<div class="empty">No registered courses</div>'}
+   </div></div>`;
+}
+
+function viewRooms(){
+  const staff=S.role==='staff';
+  const list=rooms.filter(r=>(!S.fBuilding||r.building===S.fBuilding)&&r.capacity>=S.fCap&&r.name.toLowerCase().includes(S.fQ.toLowerCase()));
+  if(!list.find(r=>r.id===S.selRoom)&&list[0])S.selRoom=list[0].id;
+  const r=rm(S.selRoom),ms=meetings.filter(m=>m.roomId===S.selRoom);
+  const used=ms.reduce((a,m)=>a+t2m(m.end)-t2m(m.start),0),total=5*(H1-H0)*60;
+  const blocks=ms.map(m=>{const c=secCourse(m.sectionId);const over=enrolled(m.sectionId)>r.capacity;
+    return{day:m.day,start:m.start,end:m.end,title:secLabel(m.sectionId),l1:`${m.start}–${m.end}`,l2:`${enrolled(m.sectionId)}/${r.capacity} seats`,c:color(c),cls:over?'over':'',edit:staff?m.id:''}});
+  const buildings=[...new Set(rooms.map(r=>r.building))];
+  return `<h1>Room Schedule</h1><p class="sub">${staff?'View usage of every room and jump straight to editing.':'View room usage (read-only).'} · <code>GET /api/rooms</code> · <code>GET /api/rooms/:id/schedule</code></p>
+  <div class="grid-rooms">
+   <div class="card"><div class="pad" style="display:grid;gap:10px">
+     <label class="field">Search<input id="fq" placeholder="e.g. LAB" value="${S.fQ}"></label>
+     <div class="form2"><label class="field">Building<select id="fb"><option value="">All</option>${buildings.map(b=>`<option ${S.fBuilding===b?'selected':''}>${b}</option>`).join('')}</select></label>
+     <label class="field">Min capacity<select id="fc">${[0,20,30,40,50,100].map(n=>`<option value="${n}" ${S.fCap===n?'selected':''}>${n?n+'+':'Any'}</option>`).join('')}</select></label></div></div>
+     ${list.map(x=>{const cnt=meetings.filter(m=>m.roomId===x.id).length;return `<div class="roomcard ${x.id===S.selRoom?'on':''}" data-room="${x.id}"><div><b>${x.name}</b><br><small>${x.building}</small></div><div style="text-align:right"><small>${x.capacity} seats</small><br><small>${cnt} meetings</small></div></div>`}).join('')||'<div class="empty">No rooms match</div>'}
+   </div>
+   <div class="card"><div class="pad row spread"><div><h2>${r.name} <span class="pill">${r.building}</span> <span class="pill brand">${r.capacity} seats</span></h2>
+     <small style="color:var(--muted)">Weekly utilisation ${Math.round(used/total*100)}% · ${ms.length} meetings</small></div>
+     <div class="row">${staff?`<button class="btn primary" data-new-room="${r.id}">＋ Add meeting</button>`:''}</div></div>
+     ${grid(blocks)}
+     ${blocks.some(b=>b.cls)?'<div class="pad" style="padding-top:0"><span class="pill warn">Dashed outline = enrolled count exceeds room capacity</span></div>':''}
+   </div></div>`;
+}
+
+function viewManage(){
+  if(S.role!=='staff')return `<div class="card lock"><div class="big">403</div><h2 style="margin:8px 0">Staff only</h2><p class="sub">Creating, editing and deleting meetings requires the <b>room-planning</b> permission. Students have read-only access (BR-04). API responds <b>403 Forbidden</b>.</p><button class="btn primary" data-role="staff">Switch to Staff (demo)</button></div>`;
+  const q=S.mQ.toLowerCase();
+  const list=meetings.filter(m=>(!S.mDay||m.day===S.mDay)&&(!S.mRoom||m.roomId===S.mRoom)&&(secLabel(m.sectionId)+secCourse(m.sectionId).name).toLowerCase().includes(q))
+    .sort((a,b)=>DAYS.indexOf(a.day)-DAYS.indexOf(b.day)||t2m(a.start)-t2m(b.start));
+  const bad=meetings.filter(m=>enrolled(m.sectionId)>rm(m.roomId).capacity).length;
+  return `<div class="row spread"><div><h1>Room Management</h1><p class="sub">Allocate sections to rooms and time slots. Every save is validated before it is written (FR-07).</p></div>
+   <button class="btn primary" data-new="1">＋ New meeting</button></div>
+  <div class="stat"><div class="card"><b>${meetings.length}</b><span>Meetings</span></div><div class="card"><b>${rooms.length}</b><span>Rooms</span></div>
+   <div class="card"><b>${sections.length}</b><span>Sections</span></div><div class="card"><b style="color:${bad?'var(--warn)':'var(--ok)'}">${bad}</b><span>Over-capacity meetings</span></div></div>
+  ${bad?`<div class="alert warn"><div class="ico" aria-hidden="true">!</div><div><b>${bad} meeting${bad>1?'s':''} exceed room capacity after an enrollment change (FR-11).</b> Open the meeting to move it to a bigger room or request alternative slots.</div></div>`:''}
+  <div class="card"><div class="pad row">
+    <label class="field" style="flex:1;min-width:160px">Search<input id="mq" placeholder="Course or section" value="${S.mQ}"></label>
+    <label class="field">Day<select id="md"><option value="">All</option>${DAYS.map(d=>`<option ${S.mDay===d?'selected':''}>${d}</option>`).join('')}</select></label>
+    <label class="field">Room<select id="mr"><option value="">All</option>${rooms.map(r=>`<option value="${r.id}" ${S.mRoom===r.id?'selected':''}>${r.name}</option>`).join('')}</select></label></div>
+   <div class="tablewrap"><table><thead><tr><th>Section</th><th>Room</th><th>Day</th><th>Time</th><th>Enrolled / Seats</th><th>Status</th><th></th></tr></thead><tbody>
+   ${list.map(m=>{const c=secCourse(m.sectionId),k=color(c),r=rm(m.roomId),n=enrolled(m.sectionId),over=n>r.capacity;
+     return `<tr><td><span class="dot" style="background:${k.bd}"></span><b>${secLabel(m.sectionId)}</b><br><small style="color:var(--muted)">${c.name}</small></td>
+      <td>${r.name}<br><small style="color:var(--muted)">${r.building}</small></td><td>${m.day}</td><td>${m.start}–${m.end}</td>
+      <td>${n} / ${r.capacity}<div class="cap"><i style="width:${Math.min(100,n/r.capacity*100)}%;background:${over?'var(--bad)':n/r.capacity>.9?'var(--warn)':'var(--brand)'}"></i></div></td>
+      <td>${over?'<span class="pill bad">Over capacity</span>':'<span class="pill ok">OK</span>'}</td>
+      <td style="white-space:nowrap;text-align:right"><button class="btn sm" data-edit="${m.id}">Edit</button> <button class="btn sm danger" data-del="${m.id}">Delete</button></td></tr>`}).join('')||`<tr><td colspan="7" class="empty">No meetings match your filters</td></tr>`}
+   </tbody></table></div></div>`;
+}
+
+function viewEvents(){
+  const d=S.enrDraft,staffNote=S.role==='student'?'<span class="pill warn">Dev console · visible for demo</span>':'';
+  const payload={event_id:d.event_id,event_name:'enrollment.changed',student_id:d.student,section_id:d.section,action:d.action,timestamp:'(now)'};
+  return `<h1>Events & Integration ${staffNoteHack(staffNote)}</h1><p class="sub">Mock integration console for the MVP: inbound <code>enrollment.changed</code> (Team 03) and outbound <code>schedule.changed</code> (Notification Hub, Data & Analytics).</p>
+  <div class="grid-ev">
+   <div style="display:grid;gap:18px">
+    <div class="card pad" style="display:grid;gap:12px"><div><h2>Inbound · enrollment.changed</h2><small style="color:var(--muted)">Idempotent upsert on (student_id, section_id)</small></div>
+      <label class="field">event_id<input id="e_id" value="${d.event_id}"></label>
+      <label class="field">student_id<select id="e_st"><option>${ME.id}</option></select></label>
+      <label class="field">section_id<select id="e_sec">${sections.map(s=>`<option value="${s.id}" ${d.section===s.id?'selected':''}>${s.id}</option>`).join('')}</select></label>
+      <label class="field">action<select id="e_act">${['enrolled','dropped','withdrawn'].map(a=>`<option ${d.action===a?'selected':''}>${a}</option>`).join('')}</select></label>
+      <pre>${JSON.stringify(payload,null,2)}</pre>
+      <div class="row"><button class="btn primary" data-send-enr="1">Send event</button><button class="btn" data-replay="1" ${S.seen.size?'':'disabled'}>↻ Replay last event</button></div>
+    </div>
+    <div class="card pad" style="display:grid;gap:10px"><h2>Section seat counts</h2>
+     ${sections.map(s=>{const n=enrolled(s.id),mine=enrollments.find(e=>e.student===ME.id&&e.section===s.id&&e.status==='enrolled');
+      return `<div class="row spread"><span><b>${secLabel(s.id)}</b> ${mine?'<span class="pill brand">you</span>':''}</span><span>${n} / ${s.capacity}</span></div>`}).join('')}
+    </div>
+    <div class="card pad row spread"><div><h3>AI suggestion service</h3><small style="color:var(--muted)">Simulate outage → deterministic fallback (BR-05)</small></div>
+      <button class="sw ${S.aiUp?'on':''}" data-toggle-ai="1" aria-label="Toggle AI service"></button></div>
+   </div>
+   <div class="card"><div class="pad row spread"><h2>Event log</h2><button class="btn sm" data-clear="1">Clear</button></div>
+    <div class="pad" style="padding-top:0"><div class="log">${S.log.map(l=>`<div class="logi"><div class="h"><span class="pill ${l.dir==='IN'?'brand':l.dir==='OUT'?'ok':''}">${l.dir}</span><b>${l.name}</b>${l.extra?`<small style="color:var(--muted)">${l.extra}</small>`:''}<time>${l.ts}</time></div><pre>${typeof l.payload==='string'?l.payload:JSON.stringify(l.payload,null,2)}</pre></div>`).join('')||'<div class="empty">No events yet. Send an enrollment event or edit a meeting.</div>'}</div></div></div>
+  </div>`;
+}
+const staffNoteHack=x=>x;
+
+function render(){
+  renderTop();
+  const v={timetable:viewTimetable,rooms:viewRooms,manage:viewManage,events:viewEvents};
+  if(S.view==='timetable'&&S.role==='staff')S.view='rooms';
+  $('#app').innerHTML=v[S.view]();
+}
+
+/* ============ Meeting modal ============ */
+function openModal(m,preRoom){
+  S.modal={id:m?m.id:null,f:m?{sectionId:m.sectionId,roomId:m.roomId,day:m.day,start:m.start,end:m.end}
+    :{sectionId:sections[0].id,roomId:preRoom||rooms[0].id,day:'Mon',start:'09:00',end:'11:00'},attempt:null};
+  S.sugg=null;S.suggMode=null;renderModal();
+}
+function renderModal(){
+  if(S.confirmDel){
+    const dm=meetings.find(x=>x.id===S.confirmDel);
+    if(dm){
+      $('#modal').innerHTML=`<div class="scrim" data-close="confirm"><div class="modal" style="width:min(440px,100%)" role="dialog" aria-label="Confirm delete">
+       <div class="body"><h2>Delete this meeting?</h2><p style="margin:0;color:var(--muted)">${secLabel(dm.sectionId)} · ${dm.day} ${dm.start}–${dm.end} · ${rm(dm.roomId).name}. A schedule.changed event will be sent.</p></div>
+       <footer><span></span><div class="row"><button class="btn" data-cancel-del="1">Cancel</button><button class="btn primary" data-confirm-del="1" style="background:#c02a41;border-color:#c02a41">Delete meeting</button></div></footer></div></div>`;
+      return;
+    }
+    S.confirmDel=null;
+  }
+  const M=S.modal;if(!M){$('#modal').innerHTML='';return}
+  const f=M.f,res=check(f,M.id),n=enrolled(f.sectionId),r=rm(f.roomId);
+  const opt=(arr,sel,fn)=>arr.map(x=>fn(x,sel)).join('');
+  $('#modal').innerHTML=`<div class="scrim" data-close="scrim"><div class="modal">
+   <header><div><h2>${M.id?'Edit meeting':'New meeting'}</h2><small style="color:var(--muted)">${M.id?'PATCH /api/meetings/'+M.id:'POST /api/meetings'}</small></div><button class="btn sm" data-close="1">✕</button></header>
+   <div class="body">
+    <label class="field">Section<select data-f="sectionId">${sections.map(s=>`<option value="${s.id}" ${f.sectionId===s.id?'selected':''}>${secLabel(s.id)} — ${crs(s.courseId).name} (${enrolled(s.id)} enrolled)</option>`).join('')}</select></label>
+    <div class="form2"><label class="field">Room<select data-f="roomId">${rooms.map(x=>`<option value="${x.id}" ${f.roomId===x.id?'selected':''}>${x.name} · ${x.capacity} seats · ${x.building}</option>`).join('')}</select></label>
+    <label class="field">Day<select data-f="day">${DAYS.map(d=>`<option ${f.day===d?'selected':''}>${d}</option>`).join('')}</select></label></div>
+    <div class="form2"><label class="field">Start<select data-f="start">${timeOpts.slice(0,-1).map(t=>`<option ${f.start===t?'selected':''}>${t}</option>`).join('')}</select></label>
+    <label class="field">End<select data-f="end">${timeOpts.slice(1).map(t=>`<option ${f.end===t?'selected':''}>${t}</option>`).join('')}</select></label></div>
+    <div class="row"><span class="pill">${n} enrolled</span><span class="pill">${r.capacity} seats in ${r.name}</span>
+     <span class="pill ${n>r.capacity?'bad':'ok'}">${n>r.capacity?'Over capacity':'Capacity OK'}</span></div>
+    ${M.attempt?`<div class="alert bad" style="margin:0"><div class="ico" aria-hidden="true">×</div><div><b>Save rejected · HTTP ${M.attempt.http} ${M.attempt.http===409?'Conflict':'Bad Request'}</b><ul>${M.attempt.errors.map(e=>`<li>${e}</li>`).join('')}</ul></div></div>`
+     :res.ok?`<div class="alert ok" style="margin:0"><div class="ico" aria-hidden="true">✓</div><div><b>No conflicts found.</b> Safe to save.</div></div>`
+     :`<div class="alert warn" style="margin:0"><div class="ico" aria-hidden="true">!</div><div><b>Conflict check · would return HTTP ${res.http}</b><ul>${res.errors.map(e=>`<li>${e}</li>`).join('')}</ul></div></div>`}
+    <div><div class="row spread"><h3>Alternative slots</h3><button class="btn sm" data-suggest="1" ${S.suggLoading?'disabled':''}>${S.suggLoading?'<span class="spin"></span> Asking AI…':'Suggest available slots'}</button></div>
+     ${S.suggMode?`<div style="margin-top:8px" class="pill ${S.suggMode==='ai'?'brand':'warn'}">${S.suggMode==='ai'?'AI-ranked suggestions':'AI unavailable → deterministic scan fallback (BR-05)'}</div>`:''}
+     ${S.sugg?S.sugg.map((s,i)=>`<div class="sugg"><div><b>${s.day} ${s.start}–${s.end}</b> · ${rm(s.roomId).name}<br><small style="color:var(--muted)">${s.why}</small></div><button class="btn sm primary" data-apply="${i}">Use</button></div>`).join('')||'<div class="empty">No free slots found</div>':''}
+    </div>
+   </div>
+   <footer><small style="color:var(--muted);align-self:center">Checks run server-side in a D1 transaction.</small><div class="row"><button class="btn" data-close="1">Cancel</button><button class="btn primary" data-save="1">${M.id?'Save changes':'Create meeting'}</button></div></footer>
+  </div></div>`;
+}
+async function doSuggest(){
+  const M=S.modal;S.suggLoading=true;S.sugg=null;renderModal();
+  if(S.aiUp){await new Promise(r=>setTimeout(r,700));S.suggMode='ai'}
+  else{await new Promise(r=>setTimeout(r,150));S.suggMode='fallback'}
+  S.sugg=suggest(M.f,M.id);S.suggLoading=false;
+  logEvt('API','POST /api/conflicts/check',{section_id:M.f.sectionId,suggestions:S.sugg.length,engine:S.suggMode==='ai'?'ai':'deterministic-fallback'});
+  renderModal();
+}
+function doSave(){
+  const M=S.modal,res=check(M.f,M.id);
+  if(!res.ok){M.attempt=res;logEvt('API',(M.id?'PATCH /api/meetings/'+M.id:'POST /api/meetings')+' → '+res.http,res.errors.join('\n'));toast(`Rejected · HTTP ${res.http}`,'bad');renderModal();return}
+  if(M.id){const m=meetings.find(x=>x.id===M.id);Object.assign(m,M.f);emitSchedule('updated',m);logEvt('API','PATCH /api/meetings/'+m.id+' → 200','updated');toast('Meeting updated · schedule.changed sent','ok')}
+  else{const m={id:'mtg_'+String(nextId++).padStart(2,'0'),...M.f};meetings.push(m);emitSchedule('created',m);logEvt('API','POST /api/meetings → 201',m.id);toast('Meeting created · schedule.changed sent','ok')}
+  S.modal=null;renderModal();render();
+}
+function doDelete(id){
+  const m=meetings.find(x=>x.id===id);if(!m)return;S.confirmDel=null;
+  meetings=meetings.filter(x=>x.id!==id);emitSchedule('deleted',m);logEvt('API','DELETE /api/meetings/'+id+' → 204','');
+  toast('Meeting deleted · schedule.changed sent','ok');renderModal();render();
+}
+function askDelete(id){S.confirmDel=id;renderModal()}
+function sendEnrollment(replay){
+  const d=S.enrDraft;
+  const p={event_id:d.event_id,event_name:'enrollment.changed',student_id:d.student,section_id:d.section,action:d.action,timestamp:new Date().toISOString()};
+  const before=enrolled(d.section);
+  if(S.seen.has(p.event_id)){
+    logEvt('IN','enrollment.changed',p,'↻ duplicate event_id — ignored, no side effects (BR-07)');
+    toast(`Duplicate ignored · count stays ${before}`);render();return;
+  }
+  S.seen.add(p.event_id);
+  const ex=enrollments.find(e=>e.student===d.student&&e.section===d.section);
+  const status=d.action==='enrolled'?'enrolled':d.action;
+  if(ex)ex.status=status;else enrollments.push({student:d.student,section:d.section,status});
+  const after=enrolled(d.section);
+  const over=meetings.filter(m=>m.sectionId===d.section&&after>rm(m.roomId).capacity);
+  logEvt('IN','enrollment.changed',p,`upsert OK · ${secLabel(d.section)} count ${before} → ${after}`+(over.length?` · ⚠ over capacity in ${over.map(m=>rm(m.roomId).name).join(', ')}`:''));
+  toast(`Processed · ${secLabel(d.section)} now ${after}`+(over.length?' · capacity conflict!':''),over.length?'bad':'ok');
+  S.lastEvt=p.event_id;render();
+}
+
+/* ============ Events ============ */
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-view],[data-role],[data-room],[data-new],[data-new-room],[data-edit],[data-del],[data-close],[data-save],[data-suggest],[data-apply],[data-send-enr],[data-replay],[data-toggle-ai],[data-clear],[data-cancel-del],[data-confirm-del]');
+  if(!t)return;const d=t.dataset;
+  if((d.close==='scrim'||d.close==='confirm')&&e.target!==t)return;
+  if(d.view){S.view=d.view;render()}
+  else if(d.role){S.role=d.role;S.view=d.role==='staff'?'rooms':'timetable';render()}
+  else if(d.room){S.selRoom=d.room;render()}
+  else if(d.new){openModal(null)}
+  else if(d.newRoom){openModal(null,d.newRoom)}
+  else if(d.edit){openModal(meetings.find(m=>m.id===d.edit))}
+  else if(d.del){askDelete(d.del)}
+  else if(d.cancelDel){S.confirmDel=null;renderModal()}
+  else if(d.confirmDel){doDelete(S.confirmDel)}
+  else if(d.close){S.modal=null;S.confirmDel=null;renderModal()}
+  else if(d.save){doSave()}
+  else if(d.suggest){doSuggest()}
+  else if(d.apply!==undefined){const s=S.sugg[+d.apply];Object.assign(S.modal.f,{roomId:s.roomId,day:s.day,start:s.start,end:s.end});S.modal.attempt=null;S.sugg=null;S.suggMode=null;renderModal();toast('Slot applied — review and save')}
+  else if(d.sendEnr){sendEnrollment()}
+  else if(d.replay){S.enrDraft.event_id=S.lastEvt||S.enrDraft.event_id;sendEnrollment(true)}
+  else if(d.toggleAi){S.aiUp=!S.aiUp;toast(S.aiUp?'AI service online':'AI service down — fallback active');render()}
+  else if(d.clear){S.log=[];render()}
+});
+document.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.dataset.f){S.modal.f[t.dataset.f]=t.value;S.modal.attempt=null;S.sugg=null;S.suggMode=null;renderModal();return}
+  const map={fb:()=>S.fBuilding=t.value,fc:()=>S.fCap=+t.value,md:()=>S.mDay=t.value,mr:()=>S.mRoom=t.value,
+    e_sec:()=>S.enrDraft.section=t.value,e_act:()=>S.enrDraft.action=t.value,e_id:()=>S.enrDraft.event_id=t.value};
+  if(map[t.id]){map[t.id]();render()}
+});
+document.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.id==='fq'||t.id==='mq'){
+    const pos=t.selectionStart;if(t.id==='fq')S.fQ=t.value;else S.mQ=t.value;render();
+    const n=document.getElementById(t.id);n.focus();n.setSelectionRange(pos,pos);
+  }
+});
+render();
+</script>
+
+</body></html>
